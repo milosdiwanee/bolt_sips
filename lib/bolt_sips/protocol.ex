@@ -138,12 +138,19 @@ defmodule Bolt.Sips.Protocol do
   @doc "Callback for DBConnection.handle_execute/1"
   def handle_execute(query, params, opts, %ConnData{configuration: conf} = conn_data) do
     # only try to reconnect if the error is about the broken connection
-    with {:disconnect, _, _} <- execute(query, params, opts, conn_data) do
+    with {:disconnect, _, data_conn} <- execute(query, params, opts, conn_data) do
       [
         delay: delay,
         factor: factor,
         tries: tries
       ] = conf[:retry_linear_backoff]
+
+      user_config = [
+        url: data_conn.configuration |> Keyword.get(:url),
+        pool_size: data_conn.configuration |> Keyword.get(:pool_size),
+        basic_auth: data_conn.configuration |> Keyword.get(:basic_auth),
+        role: data_conn.configuration|> Keyword.get(:role)
+      ]
 
       delay_stream =
         delay
@@ -152,7 +159,7 @@ defmodule Bolt.Sips.Protocol do
         |> Stream.take(tries)
 
       retry with: delay_stream do
-        with {:ok, conn_data} <- connect([]),
+        with {:ok, conn_data} <- connect(user_config),
              {:ok, conn_data} <- checkout(conn_data) do
           execute(query, params, opts, conn_data)
         end
