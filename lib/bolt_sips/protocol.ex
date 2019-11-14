@@ -148,8 +148,14 @@ defmodule Bolt.Sips.Protocol do
       user_config = [
         url: data_conn.configuration |> Keyword.get(:url),
         pool_size: data_conn.configuration |> Keyword.get(:pool_size),
+        max_overflow: data_conn.configuration |> Keyword.get(:max_overflow),
+        timeout: data_conn.configuration |> Keyword.get(:timeout),
+        ssl: data_conn.configuration |> Keyword.get(:ssl),
+        socket: data_conn.configuration |> Keyword.get(:socket),
+        with_etls: data_conn.configuration |> Keyword.get(:with_etls),
         basic_auth: data_conn.configuration |> Keyword.get(:basic_auth),
-        role: data_conn.configuration|> Keyword.get(:role)
+        role: data_conn.configuration|> Keyword.get(:role),
+        prefix: data_conn.configuration |> Keyword.get(:prefix)
       ]
 
       delay_stream =
